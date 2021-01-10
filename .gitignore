@@ -1,2 +1,6 @@
 crowd_nav/data/
 crowd_nav/utils/data/
+dist/
+build/
+crowdnav.egg-info/
+.vscode/
