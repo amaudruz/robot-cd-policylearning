@@ -1,6 +1,6 @@
-# Performance
+## Performance
 
-## Training & Evaluation
+### Training & Evaluation
 
 * Behavioral Cloning (Vanilla)
  ```
@@ -21,7 +21,7 @@
  ```
  python utils/compare.py
  ```
-## Results
+### Results
 
 <img src="crowd_nav/images/collision.png" height="240"/> <img src="crowd_nav/images/reward.png" height="240"/> 
  
