@@ -28,7 +28,7 @@ torch.manual_seed(2020)
 
 def parse_arguments():
     parser = argparse.ArgumentParser('Parse configuration file')
-    parser.add_argument('--policy', type=str, default='sail')
+    parser.add_argument('--policy', type=str, default='sail_traj')
     parser.add_argument('--policy_config', type=str, default='configs/policy.config')
     parser.add_argument('--traj_path', type=str, default=None)
     parser.add_argument('--batch_size', type=int, default=128)
@@ -41,8 +41,8 @@ def parse_arguments():
 
     # Human trajectory prediction 
     parser.add_argument('--traj_weight', type=float, default=0.5)
-    parser.add_argument('--traj_length', type=float, default=3)
-    parser.add_argument('--traj_start', type=float, default=0)
+    parser.add_argument('--traj_length', type=int, default=3)
+    parser.add_argument('--traj_start', type=int, default=0)
 
     # Human future position prediction
     parser.add_argument('--uni_weight', type=float, default=0.5)
@@ -120,7 +120,7 @@ def set_loader(args, device):
         horizon = 10
     dataset_imit = ImitDatasetTraj(data_imit, None, device, horizon=horizon, sample=args.data_sample, contrast=contrast)
 
-    validation_split = 0.02
+    validation_split = 0.3
     train_loader, valid_loader = split_dataset(dataset_imit, args.batch_size, args.percent_label, validation_split)
     return train_loader, valid_loader
 
@@ -292,17 +292,22 @@ def imitate(args_change=None, return_losses=True, r=False, notebook=True) :
 
     # config
     suffix = ""
+    name = ''
     if args.auxiliary_task == 'contrastive':
+        name = 'Social-nce'
         suffix += "-{}-data-{:.1f}-weight-{:.1f}-horizon-{:d}-temperature-{:.2f}-nboundary-{:d}".format(args.contrast_sampling, args.percent_label, args.contrast_weight, args.contrast_horizon, args.contrast_temperature, args.contrast_nboundary)
         if args.contrast_nboundary > 0:
             suffix += "-ratio-{:.2f}".format(args.ratio_boundary)
         if args.contrast_sampling == 'local':
             suffix += "-range-{:.2f}".format(args.contrast_range)
     elif args.auxiliary_task == 'traj' :
+        name = 'TrajPred'
         suffix += "-trajpred-{:.2f}-weight-{}to{}-length".format(args.traj_weight, args.traj_start + 1,args.traj_start+ args.traj_length)
     elif args.auxiliary_task == 'uni' :
+        name = 'UniPred'
         suffix += "-unipred-{:.2f}-weight-{}-length".format(args.uni_weight, args.uni_length)
     else :
+        name = 'Baseline'
         suffix += "-baseline-data-{:.1f}".format(args.percent_label)
     suffix += "-traj" if 'traj' in args.policy else "-notraj"
     continu = config_path(args, suffix)
@@ -375,13 +380,15 @@ def imitate(args_change=None, return_losses=True, r=False, notebook=True) :
         
         if epoch % args.save_every == (args.save_every - 1):
             torch.save(policy_net.state_dict(), os.path.join(args.output_dir, 'policy_net_{:02d}.pth'.format(epoch)))
-            if args.traj_weight > 0 :
+            if args.auxiliary_task == 'traj' or args.auxiliary_task == 'uni':
                 torch.save(prediction_head, os.path.join(args.output_dir, 'prediction_head_{:02d}.pth'.format(epoch)))
-            elif args.uni_weight > 0 : 
-                torch.save(prediction_head, os.path.join(args.output_dir, 'prediction_head_{:02d}.pth'.format(epoch)))
+                
 
     torch.save(policy_net.state_dict(), os.path.join(args.output_dir, 'policy_net.pth'))
     torch.save((train_losses, val_losses), os.path.join(args.output_dir, 'losses.pth'))
+    extra_info = {'name' : name}
+    torch.save(extra_info, os.path.join(args.output_dir, 'extra_info.pth'))
+    
     if return_losses :
         return train_losses, val_losses
 

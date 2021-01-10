@@ -156,7 +156,7 @@ class ExtendedNetworkTraj(nn.Module):
             return action, emb_human
 
 
-class SAILTRAJSIMPLE(MultiHumanPolicy):
+class SAILTRAJ(MultiHumanPolicy):
     def __init__(self, traj_model_path=None):
         super().__init__()
         self.name ='SAILTRAJ'

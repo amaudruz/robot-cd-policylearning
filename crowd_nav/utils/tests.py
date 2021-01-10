@@ -1,6 +1,8 @@
 import configparser
 import torch
 import gym
+import argparse
+import os
 
 from crowd_sim.envs.utils.robot import Robot
 from crowd_sim.envs.crowd_sim_sf import CrowdSim_SF
@@ -8,7 +10,7 @@ from crowd_nav.utils.explorer import ExplorerDs
 from crowd_nav.policy.policy_factory import policy_factory
 from crowd_nav.utils.multi_envs import modify_env_params
 
-def test(model_type='sail', visible=False, n_episodes=100, model_path=None, itera=range(4, 199, 5), env_mods=None) :
+def test(model_type='sail', visible=False, n_episodes=100, model_path=None, itera=range(4, 199, 5), env_mods=None, notebook=True) :
     res_list = []
     if model_path is None :
         if model_type != 'sail' :
@@ -16,8 +18,9 @@ def test(model_type='sail', visible=False, n_episodes=100, model_path=None, iter
         else :
             model_path = 'data/output/imitate-baseline-data-0.5-notraj/'
     for i in itera :
-        s = str(i) if i > 10 else '{}'.format(i)
-        res = test_model(model_path + 'policy_net_{}.pth'.format(s), model_type=model_type, visible=visible, n_episodes=n_episodes, env_mods=env_mods)
+        policy_net_path = os.path.join(model_path, 'policy_net_{:02d}.pth'.format(i))
+        res = test_model(policy_net_path, model_type=model_type, visible=visible, n_episodes=n_episodes, env_mods=env_mods,
+                        notebook=notebook)
         res_list.append((i, res))
     return res_list
 
@@ -83,3 +86,15 @@ def test_model(m_p, model_type, visible=False, n_episodes=5000, model=None, env_
     if return_exp :
         return res, exp 
     return res
+
+
+if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser('Parse configuration file')
+    parser.add_argument('--model_path', type=str, default='sail_traj')
+    parser.add_argument('--policy', type=str, default='sail_traj')
+    args = parser.parse_args()
+    
+    results = test(model_type=args.policy, model_path=args.model_path, n_episodes=500, notebook=False)
+
+    torch.save(results, os.path.join(args.model_path, 'results.pth'))
