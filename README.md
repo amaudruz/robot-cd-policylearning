@@ -1,7 +1,8 @@
+# Performance
 
 ## Training & Evaluation
 
-Behavioral Cloning (Vanilla)
+* Behavioral Cloning (Vanilla)
  ```
  python imitate.py --gpu
  python utils/tests.py --model_path data/output/imitate-baseline-data-0.5-traj
@@ -20,6 +21,10 @@ Behavioral Cloning (Vanilla)
  ```
  python utils/compare.py
  ```
+## Results
+
+<img src="crowd_nav/images/collision.png" height="240"/> <img src="crowd_nav/images/reward.png" height="240"/> 
+ 
 ### Acknowledgments
 
 This code is developed based on [CrowdNav](https://github.com/vita-epfl/CrowdNav) and [Social-NCE](https://github.com/vita-epfl/social-nce)
