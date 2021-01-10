@@ -4,3 +4,4 @@ dist/
 build/
 crowdnav.egg-info/
 .vscode/
+bin/
