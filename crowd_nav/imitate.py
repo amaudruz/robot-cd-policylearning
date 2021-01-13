@@ -98,20 +98,9 @@ def set_loader(args, device):
     """
     Set Data Loader
     """
-    # if 'traj' in args.policy :
-    #     demo_file = os.path.join(args.memory_dir, 'data_imit_mem.pt')
-    # else :
-    #     demo_file = os.path.join(args.memory_dir, 'data_imit.pt')
     demo_file = os.path.join(args.memory_dir, 'data_imit_mem.pt')
     logging.info('Load data from %s', demo_file)
     data_imit = torch.load(demo_file)
-
-    # if 'traj' in args.policy :
-    #     dataset_imit = ImitDatasetTraj(data_imit, None, device, horizon=args.contrast_horizon, sample=args.data_sample)
-    #     #dataset_imit = ImitDatasetTraj.from_mult(data_imit, device, horizon=args.contrast_horizon)
-    # else :
-    #     dataset_imit = ImitDataset(data_imit, None, device, horizon=args.contrast_horizon, sample=args.data_sample)
-    #     #dataset_imit = ImitDataset.from_mult(data_imit, device, horizon=args.contrast_horizon)
 
     contrast = args.auxiliary_task == 'contrastive'
     if contrast :
@@ -330,14 +319,12 @@ def imitate(args_change=None, return_losses=True, r=False, notebook=True) :
         encoder_sample = SpatialEncoder(hidden_dim=8, head_dim=8).to(device)
     
     prediction_head = ProjHead(feat_dim=32, hidden_dim=16, head_dim=2).to(device)
+    
     # unipred and traj_pre
     if args.auxiliary_task == 'uni' :
         prediction_head = ProjHead(feat_dim=32, hidden_dim=16, head_dim=2).to(device)
     elif args.auxiliary_task == 'traj' :
         prediction_head = ProjHead(feat_dim=32, hidden_dim=16*max(int(args.traj_length/2), 1), head_dim=2*args.traj_length).to(device)
-    # position_head_traj = ProjHead(feat_dim=32, hidden_dim=16, head_dim=2).to(device)
-    # position_emb = ProjHead(feat_dim=2, hidden_dim=16, head_dim=24).to(device)
-    # decoder = torch.nn.LSTMCell(24, 32).to(device)
 
     # pretrain
     if os.path.exists(args.model_file):
@@ -347,8 +334,7 @@ def imitate(args_change=None, return_losses=True, r=False, notebook=True) :
 
     # optimize
     param = list(policy_net.parameters()) + list(projection_head.parameters()) + list(encoder_sample.parameters()) + list(prediction_head.parameters()) 
-    # param = list(policy_net.parameters()) + list(projection_head.parameters()) + list(encoder_sample.parameters()) + list(prediction_head.parameters()) + \
-    #     list(position_head_traj.parameters()) + list(position_emb.parameters()) + list(decoder.parameters())
+    
     optimizer = optim.Adam(param, lr=args.lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=20, threshold=0.01, cooldown=20, min_lr=1e-5, verbose=True)
     criterion = nn.MSELoss()
@@ -357,7 +343,6 @@ def imitate(args_change=None, return_losses=True, r=False, notebook=True) :
     nce = SocialNCE(projection_head, encoder_sample, args.contrast_sampling, args.contrast_horizon, args.contrast_nboundary, args.contrast_temperature, args.contrast_range, args.ratio_boundary)
     upred = UniPred(prediction_head, args.uni_length)
     tpred = TrajPredFF(prediction_head, pred_length=args.traj_length, pred_start=args.traj_start)
-    # tpred = TrajPred(position_head_traj, decoder, position_emb, pred_length=args.trajectory_length)
 
 
     # loop
@@ -371,10 +356,6 @@ def imitate(args_change=None, return_losses=True, r=False, notebook=True) :
         train_losses.append((train_loss_all, train_loss_task, train_loss_nce, train_loss_tpred, train_loss_upred))
         val_losses.append((eval_loss_all, eval_loss_task, eval_loss_nce, eval_loss_tpred, eval_loss_upred))
 
-        #print(train_loss_all, train_loss_task, train_loss_nce, train_loss_tpred, train_loss_upred )
-
-        #print(eval_loss_all, eval_loss_task)
-        
         scheduler.step(train_loss_all)      # (optional) learning rate decay once training stagnates
         logging.info("Epoch #{}: loss = ({:.4f}, {:.4f}), task = ({:.4f}, {:.4f}), nce = ({:.4f}, {:.4f}), tpred = ({:.4f}, {:.4f}), upred = ({:.4f}, {:.4f})".format(epoch, train_loss_all, eval_loss_all, train_loss_task, eval_loss_task, train_loss_nce, eval_loss_nce, train_loss_tpred, eval_loss_tpred, train_loss_upred, eval_loss_upred))
         
@@ -394,94 +375,3 @@ def imitate(args_change=None, return_losses=True, r=False, notebook=True) :
 
 if __name__ == "__main__":
     imitate(notebook=False)
-
-
-# def main():
-#     args = parse_arguments()
-#     print(args)
-
-#     # config
-#     suffix = ""
-#     if args.contrast_weight > 0:
-#         suffix += "-{}-data-{:.1f}-weight-{:.1f}-horizon-{:d}-temperature-{:.2f}-nboundary-{:d}".format(args.contrast_sampling, args.percent_label, args.contrast_weight, args.contrast_horizon, args.contrast_temperature, args.contrast_nboundary)
-#         if args.contrast_nboundary > 0:
-#             suffix += "-ratio-{:.2f}".format(args.ratio_boundary)
-#         if args.contrast_sampling == 'local':
-#             suffix += "-range-{:.2f}".format(args.contrast_range)
-#     if args.trajectory_weight > 0 :
-#         suffix += "-trajpred-{}-weight-{}-length".format(args.trajectory_weight, args.trajectory_length)
-#     if args.uni_weight > 0 :
-#         suffix += "-unipred-{}-weight-{}-length".format(args.uni_weight, args.uni_length)
-#     if args.contrast_weight == 0 and args.trajectory_weight == 0 and args.uni_weight == 0 :
-#         suffix += "-baseline-data-{:.1f}".format(args.percent_label)
-#     suffix += "-traj" if 'traj' in args.policy else "-notraj"
-#     config_path(args, suffix)
-#     config_log(args)
-
-#     device = torch.device("cuda" if torch.cuda.is_available() and args.gpu else "cpu")
-#     logging.info('Using device: %s', device)
-
-#     # dataset
-#     train_loader, valid_loader = set_loader(args, device)
-
-#     # model
-#     policy_net = set_model(args, device)
-
-#     # contrastive
-#     projection_head = ProjHead(feat_dim=64, hidden_dim=16, head_dim=8).to(device)
-#     if args.contrast_sampling == 'event':
-#         encoder_sample = EventEncoder(hidden_dim=8, head_dim=8).to(device)
-#     else:
-#         encoder_sample = SpatialEncoder(hidden_dim=8, head_dim=8).to(device)
-    
-#     # unipred
-#     prediction_head = ProjHead(feat_dim=32, hidden_dim=16, head_dim=2).to(device)
-    
-#     # traj_pred
-#     # position_head = ProjHead(feat_dim=32, hidden_dim=16, head_dim=2*args.trajectory_length).to(device)
-#     position_head_traj = ProjHead(feat_dim=32, hidden_dim=16, head_dim=2).to(device)
-#     position_emb = ProjHead(feat_dim=2, hidden_dim=16, head_dim=24).to(device)
-#     decoder = torch.nn.LSTMCell(24, 32).to(device)
-
-#     # pretrain
-#     if os.path.exists(args.model_file):
-#         load_model(policy_net, args, device)
-
-#     # optimize
-#     # param = list(policy_net.parameters()) + list(projection_head.parameters()) + list(encoder_sample.parameters()) + list(prediction_head.parameters()) + \
-#     #     list(position_head.parameters())
-#     param = list(policy_net.parameters()) + list(projection_head.parameters()) + list(encoder_sample.parameters()) + list(prediction_head.parameters()) + \
-#         list(position_head_traj.parameters()) + list(position_emb.parameters()) + list(decoder.parameters())
-#     optimizer = optim.Adam(param, lr=args.lr)
-#     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=20, threshold=0.01, cooldown=20, min_lr=1e-5, verbose=True)
-#     criterion = nn.MSELoss()
-    
-#     # Auxiliary task modules
-#     nce = SocialNCE(projection_head, encoder_sample, args.contrast_sampling, args.contrast_horizon, args.contrast_nboundary, args.contrast_temperature, args.contrast_range, args.ratio_boundary)
-#     upred = UniPred(prediction_head, args.uni_length)
-#     # tpred = TrajPred(position_head, pred_length=args.trajectory_length)
-#     tpred = TrajPred(position_head_traj, decoder, position_emb, pred_length=args.trajectory_length)
-
-#     # loop
-#     for epoch in range(args.num_epoch):
-
-#         train_loss_all, train_loss_task, train_loss_nce, train_loss_tpred, train_loss_upred = train(policy_net, projection_head, encoder_sample, train_loader, criterion, nce, tpred, upred, optimizer, args)
-#         eval_loss_all, eval_loss_task, eval_loss_nce, eval_loss_tpred, eval_loss_upred = validate(policy_net, projection_head, encoder_sample, valid_loader, criterion, nce, tpred, upred, args)
-
-#         scheduler.step(train_loss_all)      # (optional) learning rate decay once training stagnates
-
-#         if epoch % args.save_every == (args.save_every - 1):
-#             logging.info("Epoch #%02d: loss = (%.4f, %.4f), task = (%.4f, %.4f), nce = (%.4f, %.4f), tpred = (%.4f, %.4f), upred = (%.4f, %.4f) ", epoch, train_loss_all, eval_loss_all, train_loss_task, eval_loss_task, train_loss_nce, eval_loss_nce, train_loss_tpred, eval_loss_tpred, train_loss_upred, eval_loss_upred)
-#             torch.save(policy_net.state_dict(), os.path.join(args.output_dir, 'policy_net_{:02d}.pth'.format(epoch)))
-
-#     torch.save(policy_net.state_dict(), os.path.join(args.output_dir, 'policy_net.pth'))
-
-# if __name__ == '__main__':
-#     try :
-#         main()
-#     except :
-#         import pdb, traceback, sys
-#         extype, value, tb = sys.exc_info()
-#         traceback.print_exc()
-#         pdb.post_mortem(tb)
-#     #main()

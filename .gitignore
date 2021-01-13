@@ -1,4 +1,8 @@
 crowd_nav/data/
+crowd_nav/notebooks/
+crowd_nav/irrelevent_btbks/
+crowd_nav/bin
+crowd_nav/crowdnav.egg-info
 crowd_nav/utils/data/
 dist/
 build/

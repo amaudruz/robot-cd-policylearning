@@ -35,6 +35,7 @@ class TrajFeatureExtractor(nn.Module) :
         crowd_obsv = crowd_obsv[:, -self.max_obs:, :, :]
         bs, n_frames, n_humans, dim = crowd_obsv.shape
         
+        # neighbor relative information
         human_state_frames = self.transform.transform_frame(crowd_obsv.reshape(n_frames*bs, n_humans, dim))
         feat_human_frames = self.human_encoder(human_state_frames)
         feat_human_frames = feat_human_frames.reshape(bs, n_frames, n_humans, -1).transpose(1, 2).reshape(bs*n_humans, n_frames, -1)
@@ -42,12 +43,16 @@ class TrajFeatureExtractor(nn.Module) :
         device = 'cpu'
         if crowd_obsv.is_cuda :
             device = 'cuda'
+        
+        # positionla embeddings
         position_embeddings = torch.tensor(range(n_frames))[None, :, None].repeat(bs*n_humans, 1, 1).to(device)
         feat_human_frames_pos = torch.cat([feat_human_frames, position_embeddings], dim=-1)
 
+        # attention logits and score
         logit_memory = self.history_attention(feat_human_frames_pos)
         score_memory = nn.functional.softmax(logit_memory, dim=1)
 
+        # applying attention score a aggregating
         attention_feature = torch.bmm(score_memory.transpose(-2, -1), feat_human_frames).mean(dim=1)
         emb_human = self.human_head(attention_feature).reshape(bs, n_humans, -1)
 
@@ -121,12 +126,12 @@ class ExtendedNetworkTraj(nn.Module):
             robot_state = robot_state.unsqueeze(0)
             crowd_obsv = crowd_obsv.unsqueeze(0)
 
+        # human trajectory feature extraction
         emb_human = self.trajectory_fext(crowd_obsv)
 
         # preprocessing
         emb_robot = self.robot_encoder(robot_state[:,:4])
         
-    
         # emb_human = torch.cat([emb_human, emb_human_traj], dim=-1)
         emb_concat = torch.cat([emb_robot.unsqueeze(1).repeat(1,self.num_human,1), emb_human], axis=2)
 

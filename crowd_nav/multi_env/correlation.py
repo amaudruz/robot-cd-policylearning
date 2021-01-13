@@ -68,7 +68,8 @@ if __name__ == "__main__":
         if i % args.save_interval == 0 :
             torch.save(results, os.path.join(output_dir, 'results.pth'))
         env_mods = {'safety_space' : random.choice(np.linspace(0.01, 1, 100)), 
-                    'neighbor_dist': random.choice(np.linspace(3, 10, 100))}
+                    'neighbor_dist': random.choice(np.linspace(0, 6, 100)),
+                    'time_horizon' : random.choice(np.linspace(0, 10, 10))}
         
         results['perfs'].append((env_mods, test_model(m_p=model_path, model_type=args.policy, visible=False, n_episodes=100,\
             env_type='orca', traj_path=traj_path, env_mods=env_mods, notebook=False, suffix='{} :'.format(i))))

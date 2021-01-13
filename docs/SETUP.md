@@ -24,22 +24,3 @@
 	python utils/demonstrate.py --policy="sail" --output_dir="data/output/demonstration" --memory_dir="data/demonstration" --expert_file="data/expert/rl_model.pth"
 	python utils/convert.py
 	```
-
-### Repo Structure
-```
-├── README.md                 <- You are here
-│
-├── crowd_nav
-│   ├── imitate.py            <- Train script
-│   ├── test.py               <- Test script
-|
-|   ├── data
-|   	├── memory            <- Folder that contains demontrastion data
-|   	├── output            <- Folder that contains training output
-|
-|   ├── snce
-|   	├── contrastive.py    <- Social contrastive script
-|   	├── sampling.py       <- Event sampling script
-|
-|── crowd_sim                 <- Folder that contains crowd nav simulation env
-```

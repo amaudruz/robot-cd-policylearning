@@ -1,5 +1,10 @@
-## Performance
+# Cross Domain Robot Navigation with Policy Learning 
 
+## Preparation
+
+Setup environments follwoing the [SETUP.md](docs/SETUP.md)
+
+## Performance
 
 ### Training & Evaluation
 
@@ -29,16 +34,15 @@
 
 ## Danger Evaluation
 
-The policies learned via imitation or reinforcement learning, even though highly performant in the environment they are trained in, suffer from the distributional shift
-in human behaviour during test time. Interacting with these new enviormnents might result in a high collision rate. The natural task for such scenarios would be to 
-have a mechanism to infer the robot-pedestrian collision probability of a new enviorments with the human motions as input. 
+The policies learned via imitation or reinforcement learning, even though highly performant in the environment they are trained in, suffer from the distributional shift in human behavior during test time. Interacting with these new environments might result in a high collision rate. The natural task for such scenarios would be to 
+have a mechanism to infer the robot-pedestrian collision probability of a new environments with the human motions as input. 
 
-The proposed imitator (TrajPred) human trajectory forecasting accuracy does not require interacting with the environment and can therefore be used to that end.
+The proposed imitator (TrajPred) human trajectory forecasting model does not require interacting with the environment and can therefore be used to that end.
 
 ### Evaluation 
 The imitator trained in the performance section is used to evaluate the method 
 
-In case you did not run the training in the first section of the readme, you can directly download the trained imitatior :
+In case you did not run the training in the first section of the README, you can directly download the trained imitator :
  ```
  TODO
  ```
@@ -46,21 +50,57 @@ In case you did not run the training in the first section of the readme, you can
  To test the method, we evaluate the correlation between trajectory forecasting accuracy and collision rate.
  We sample multiple new environments and, for each :
  1. Have the robot observe human motions and test its trajectory forecasting accuracy
- 2. Deploy the robot in this new simulated environment and observe the pedestrian-robot collision probability 
+ 2. Deploy the robot in this new simulated environment and observe the pedestrian-robot collision rate 
  
 Testing :
  ```
  python multi_env/correlation.py --figs 
  ```
  
- The testing is heavily time consuming (up to 12hrs), you can directly download the results via this command if desired :
+ ### Results
+ <img src="crowd_nav/images/corr.png" height="500"/>
+
+## Policy improvement w/o robot-pedestrian interaction
+
+In order for the robot to improve in an unknown environment (different than the one it is trained in), it would require further robot-pedestrian interaction. As we have seen, depending on the type of human motions, this process can be highly dangerous and lead to many collisions. Using our method, the sample complexity is much lower than the baseline which ultimately leads to fewer robot-pedestrian interactions needed for policy improvement.    
+
+Furthermore the drop in performance of the robot in new environments is highly correlated to its human trajectory forecasting accuracy. This part of the model can be improved without any interaction with the environment and should also increase the overall performance of the robot. This can be used to improve the robot performance in new environments without the need of dangerous robot-pedestrian interactions.
+
+
+### Evaluation  
+
+The imitator trained in the performance section is used to evaluate the method 
+
+In case you did not run the training in the first section of the README, you can directly download the trained imitator :
  ```
  TODO
  ```
- 
- <img src="crowd_nav/images/traj_coll_corr.png" height="500"/>
+
+In order to evaluate the method we sample new environments and, for each :
+ 1. Evaluate the initial robot performance in this new environment (collision rate)
+ 2. Have the robot improve its trajectory forecasting model by observing the human motions
+ 3. Evaluate again the robot performance and compare with the initial
+
+Gather data and initial performances :
+```
+ python multi_env/improvement_data.py 
+ ```
+
+Improve the robot :
+```
+ python multi_env/improvement.py 
+ ```
+
+Evaluate :
+```
+ python multi_env/improvement_tests.py 
+ ```
+
+ ### Results
+
+<img src="crowd_nav/images/adapt.png" height="400"/> <img src="crowd_nav/images/adapt.png" height="400"/>
  
 ### Acknowledgments
 
-This code is developed based on [CrowdNav](https://github.com/vita-epfl/CrowdNav) and [Social-NCE](https://github.com/vita-epfl/social-nce)
+This code is developed based on [CrowdNav](https://github.com/vita-epfl/CrowdNav) and [Social-NCE](https://github.com
 
