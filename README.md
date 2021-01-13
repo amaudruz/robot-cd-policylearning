@@ -98,9 +98,9 @@ Evaluate :
 
  ### Results
 
-<img src="crowd_nav/images/adapt.png" height="300"/> <img src="crowd_nav/images/adapt2.png" height="300"/>
+<img src="crowd_nav/images/adapt.png" height="400"/> <img src="crowd_nav/images/adapt2.png" height="400"/>
  
 ### Acknowledgments
 
-This code is developed based on [CrowdNav](https://github.com/vita-epfl/CrowdNav) and [Social-NCE](https://github.com
+This code is developed based on [CrowdNav](https://github.com/vita-epfl/CrowdNav) and [Social-NCE](https://github.com/vita-epfl/social-nce)
 
