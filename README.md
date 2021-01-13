@@ -42,7 +42,7 @@ The proposed imitator (TrajPred) human trajectory forecasting model does not req
 ### Evaluation 
 The imitator trained in the performance section is used to evaluate the method 
 
-In case you did not run the training in the first section of the README, you can directly download the trained imitator :
+In case you did not run the training of the proposed method in the first section of the README, you can directly download the trained imitator :
  ```
  TODO
  ```
@@ -71,7 +71,7 @@ Furthermore the drop in performance of the robot in new environments is highly c
 
 The imitator trained in the performance section is used to evaluate the method 
 
-In case you did not run the training in the first section of the README, you can directly download the trained imitator :
+In case you did not run the training of the proposed method in the first section of the README, you can directly download the trained imitator :
  ```
  TODO
  ```
