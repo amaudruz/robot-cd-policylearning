@@ -12,7 +12,7 @@
 	pip install -e .
 	```
 
-3.  Download data
+3.  Download data for performance training
 	```
 	cd crowd_nav && mkdir data/demonstration/ -p && cd data/demonstration
 	pip install gdown && gdown https://drive.google.com/uc?id=1D2guAxD_EgrKnJFMcLSBkf10SOagz0mr
