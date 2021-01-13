@@ -98,7 +98,7 @@ Evaluate :
 
  ### Results
 
-<img src="crowd_nav/images/adapt.png" height="400"/> <img src="crowd_nav/images/adapt.png" height="400"/>
+<img src="crowd_nav/images/adapt.png" height="400"/> <img src="crowd_nav/images/adapt2.png" height="400"/>
  
 ### Acknowledgments
 
